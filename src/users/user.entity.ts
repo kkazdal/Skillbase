@@ -3,8 +3,10 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
+  Index,
+  OneToMany,
 } from 'typeorm';
+import { Project } from '../projects/project.entity';
 
 @Entity('users')
 export class User {
@@ -12,6 +14,7 @@ export class User {
   id: string;
 
   @Column({ unique: true })
+  @Index()
   email: string;
 
   @Column()
@@ -20,10 +23,10 @@ export class User {
   @Column({ nullable: true })
   name: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  @OneToMany(() => Project, (project) => project.user)
+  projects: Project[];
 }
 

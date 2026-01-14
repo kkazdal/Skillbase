@@ -16,12 +16,15 @@ import { Project } from '../projects/project.entity';
         password: configService.get('DB_PASSWORD', 'postgres'),
         database: configService.get('DB_DATABASE', 'skillbase'),
         entities: [User, Project],
-        synchronize: configService.get('NODE_ENV') === 'development',
+        synchronize: false, // NEVER use synchronize in production - use migrations
         logging: configService.get('NODE_ENV') === 'development',
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        migrationsRun: false, // Run migrations manually
       }),
       inject: [ConfigService],
     }),
   ],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}
 

@@ -3,11 +3,16 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../users/user.entity';
+
+export enum ProjectEnvironment {
+  LIVE = 'live',
+  TEST = 'test',
+}
 
 @Entity('projects')
 export class Project {
@@ -17,26 +22,25 @@ export class Project {
   @Column()
   name: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+  @Column({ unique: true })
+  @Index()
+  apiKey: string;
 
-  @Column({ name: 'user_id' })
+  @Column({
+    type: 'enum',
+    enum: ProjectEnvironment,
+    default: ProjectEnvironment.LIVE,
+  })
+  environment: ProjectEnvironment;
+
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.projects, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'api_key_id', unique: true, nullable: true })
-  apiKeyId: string;
-
-  @Column({ name: 'api_key_hash', nullable: true })
-  apiKeyHash: string;
-
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }
 
