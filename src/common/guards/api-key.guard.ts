@@ -34,11 +34,15 @@ export class ApiKeyGuard implements CanActivate {
   }
 
   private extractApiKeyFromHeader(request: any): string | undefined {
-    return (
-      request.headers['x-api-key'] ||
-      request.headers['api-key'] ||
-      request.query?.apiKey
-    );
+    // Preferred: Authorization: Bearer <API_KEY>
+    const authHeader: string | undefined = request.headers?.authorization;
+    if (authHeader) {
+      const [type, token] = authHeader.split(' ');
+      if (type === 'Bearer' && token) return token;
+    }
+
+    // Backward compatible fallbacks (keep existing behavior)
+    return request.headers?.['x-api-key'] || request.headers?.['api-key'] || request.query?.apiKey;
   }
 }
 

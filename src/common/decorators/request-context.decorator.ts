@@ -7,6 +7,7 @@ export const ReqContext = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
     return {
       user: request.user,
+      project: request.project,
       apiKey: request.apiKey,
     };
   },
