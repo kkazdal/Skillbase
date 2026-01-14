@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -12,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,20 +25,30 @@ services:
     build: .
     container_name: skillbase-api
     restart: unless-stopped
-    env_file:
-      - .env.docker
-    ports:
-      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - .env.docker
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+    ports:
+      - "${PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      start_period: 40s
+      retries: 3
     networks:
       - skillbase-network
 
 volumes:
   postgres_data:
-
+    driver: local
 
 networks:
   skillbase-network:
     driver: bridge
+

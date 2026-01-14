@@ -1,13 +1,47 @@
+# Dependencies
 node_modules
 npm-debug.log
+yarn-error.log
+
+# Build outputs
 dist
 build
+
+# Environment files
 .env
-.env.local
-.git
-.gitignore
-.DS_Store
+.env.*
+!.env.example
+
+# Testing
+test
 coverage
 .nyc_output
+
+# Version control
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
+logs
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+DOCKER*.md
+
+# Documentation (optional, can be included)
+# README.md
+# *.md
 
