@@ -23,7 +23,12 @@
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/database/data-source.ts",
-    "db:create": "ts-node scripts/create-database.ts"
+    "db:create": "ts-node scripts/create-database.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f postgres",
+    "docker:restart": "docker-compose restart postgres",
+    "docker:clean": "docker-compose down -v"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
