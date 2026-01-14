@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -14,18 +12,31 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - skillbase-network
 
+  api:
+    build: .
+    container_name: skillbase-api
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - skillbase-network
+
 volumes:
   postgres_data:
-    driver: local
+
 
 networks:
   skillbase-network:
     driver: bridge
-
