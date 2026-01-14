@@ -1,5 +1,5 @@
 /**
- * SkillBase Event SDK - TypeScript Types
+ * SkillBase Full SDK - TypeScript Types
  */
 
 /**
@@ -33,12 +33,66 @@ export interface CreateEventResponse {
 }
 
 /**
+ * User object returned from the API
+ */
+export interface User {
+  /** Unique user identifier (UUID) */
+  id: string;
+  /** User email address */
+  email: string;
+  /** User name (optional) */
+  name?: string | null;
+  /** User creation timestamp (ISO 8601) */
+  createdAt: string;
+}
+
+/**
+ * Project object returned from the API
+ */
+export interface Project {
+  /** Unique project identifier (UUID) */
+  id: string;
+  /** Project name */
+  name: string;
+  /** API key for the project (only returned on creation/regeneration) */
+  apiKey?: string;
+  /** Project environment (live or test) */
+  environment: 'live' | 'test';
+  /** User ID that owns this project */
+  userId: string;
+  /** Project creation timestamp (ISO 8601) */
+  createdAt: string;
+}
+
+/**
+ * Auth response from register/login
+ */
+export interface AuthResponse {
+  /** User object */
+  user: User;
+  /** JWT access token */
+  accessToken: string;
+}
+
+/**
+ * Project creation response
+ */
+export interface CreateProjectResponse {
+  /** Created project object */
+  project: Project;
+  /** API key (only shown once during creation) */
+  apiKey: string;
+}
+
+/**
  * SDK configuration options
  */
 export interface SkillBaseClientOptions {
-  /** API Key for authentication (required) */
-  apiKey: string;
-  /** Base URL for the API (optional, defaults to http://localhost:3000/v1) */
+  /** API Key for authentication (project-specific, optional if jwt provided) */
+  apiKey?: string;
+  /** JWT token for user authentication (optional if apiKey provided) */
+  jwt?: string;
+  /** Base URL for the API (optional, defaults to http://localhost:3000) */
   baseUrl?: string;
 }
 

@@ -61,5 +61,13 @@ export class ProjectsController {
     await this.projectsService.remove(id, ctx.user!.id);
     return { message: 'Project deleted successfully' };
   }
+
+  @Post(':id/regenerate-api-key')
+  async regenerateApiKey(
+    @Param('id') id: string,
+    @ReqContext() ctx: RequestContext,
+  ) {
+    return this.projectsService.regenerateApiKey(id, ctx.user!.id);
+  }
 }
 

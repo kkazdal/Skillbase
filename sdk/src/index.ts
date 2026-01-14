@@ -1,8 +1,9 @@
 /**
- * SkillBase Event SDK
+ * SkillBase Full SDK
  *
- * A client library for interacting with the SkillBase Event API.
- * Supports both Node.js and browser environments.
+ * A client library for interacting with the SkillBase API.
+ * Supports Auth, Project, and Event APIs.
+ * Works in both Node.js and browser environments.
  *
  * @packageDocumentation
  */
@@ -12,6 +13,10 @@ export type {
   Event,
   CreateEventResponse,
   SkillBaseClientOptions,
+  User,
+  Project,
+  AuthResponse,
+  CreateProjectResponse,
 } from './types';
 export { SkillBaseError } from './types';
 

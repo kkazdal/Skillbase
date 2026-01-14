@@ -1,7 +1,7 @@
 {
   "name": "@skillbase/event-sdk",
   "version": "1.0.0",
-  "description": "JavaScript/TypeScript SDK for SkillBase Event API",
+  "description": "Complete JavaScript/TypeScript SDK for SkillBase API (Auth, Project, and Event APIs)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
