@@ -1,0 +1,37 @@
+{
+  "name": "@skillbase/event-sdk",
+  "version": "1.0.0",
+  "description": "JavaScript/TypeScript SDK for SkillBase Event API",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "skillbase",
+    "events",
+    "analytics",
+    "sdk",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kkazdal/Skillbase.git",
+    "directory": "sdk"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

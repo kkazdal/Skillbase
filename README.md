@@ -83,6 +83,12 @@ The API will be available at `http://localhost:3000`
 - `PUT /projects/:id` - Update a project (requires authentication)
 - `DELETE /projects/:id` - Delete a project (requires authentication)
 
+### Events
+
+- `POST /v1/events` - Create a new event (requires API key)
+- `GET /v1/events` - Get all events for the project (requires API key)
+- `GET /v1/events?userId=<userId>` - Get events filtered by userId (requires API key)
+
 ## Project Structure
 
 ```
@@ -205,6 +211,40 @@ skb_test_8f3a1c9d_a9c2e0f4d1b3e5f7a9c1d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
    - Easy to extend with more environments
 
 See `src/projects/projects.service.ts` → `validateApiKey()` method for implementation details.
+
+## SDK
+
+SkillBase provides an official JavaScript/TypeScript SDK for easy integration.
+
+### Installation
+
+```bash
+npm install @skillbase/event-sdk
+```
+
+### Quick Start
+
+```typescript
+import { SkillBaseClient } from '@skillbase/event-sdk';
+
+const client = new SkillBaseClient({
+  apiKey: 'skb_live_your_api_key_here',
+  baseUrl: 'http://localhost:3000/v1',
+});
+
+// Create an event
+const event = await client.createEvent(
+  'user_123',
+  'level_completed',
+  150,
+  { level: 5, score: 1000 }
+);
+
+// Get events
+const events = await client.getEvents('user_123');
+```
+
+For detailed SDK documentation, see [sdk/README.md](./sdk/README.md).
 
 ## License
 
