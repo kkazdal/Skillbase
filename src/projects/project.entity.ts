@@ -22,7 +22,7 @@ export class Project {
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column({ name: 'api_key', unique: true })
   @Index()
   apiKey: string;
 
