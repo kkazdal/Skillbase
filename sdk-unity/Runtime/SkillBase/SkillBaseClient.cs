@@ -390,7 +390,8 @@ namespace SkillBase
                 return;
             }
 
-            var body = JsonUtility.ToJson(new { token = jwt });
+            var request = new RefreshTokenRequest { token = jwt };
+            var body = JsonUtility.ToJson(request);
 
             coroutineRunner.StartCoroutine(Request<AuthResponse>(
                 coroutineRunner,
