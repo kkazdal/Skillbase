@@ -135,95 +135,108 @@ namespace SkillBase
 
             for (int attempt = 0; attempt <= maxRetries; attempt++)
             {
+                // Try token refresh if we got 401 and have auto-refresh enabled
+                if (attempt > 0 && lastError?.StatusCode == 401 && !string.IsNullOrEmpty(jwt) && autoRefreshToken && retryOnAuth)
+                {
+                    yield return coroutineRunner.StartCoroutine(RefreshTokenCoroutine(coroutineRunner, (success) =>
+                    {
+                        if (!success)
+                        {
+                            onError?.Invoke(lastError);
+                        }
+                    }));
+                }
+
+                UnityWebRequest request = null;
+                bool requestSuccess = false;
+                string errorMessage = null;
+                int statusCode = 0;
+
                 try
                 {
-                    // Try token refresh if we got 401 and have auto-refresh enabled
-                    if (attempt > 0 && lastError?.StatusCode == 401 && !string.IsNullOrEmpty(jwt) && autoRefreshToken && retryOnAuth)
+                    request = new UnityWebRequest(url, method);
+
+                    // Set headers
+                    if (headers != null)
                     {
-                        yield return coroutineRunner.StartCoroutine(RefreshTokenCoroutine(coroutineRunner, (success) =>
+                        foreach (var header in headers)
                         {
-                            if (!success)
-                            {
-                                onError?.Invoke(lastError);
-                            }
-                        }));
+                            request.SetRequestHeader(header.Key, header.Value);
+                        }
                     }
 
-                    using (UnityWebRequest request = new UnityWebRequest(url, method))
+                    // Add auth header if not already present
+                    if (!headers?.ContainsKey("Authorization") ?? true)
                     {
-                        // Set headers
-                        if (headers != null)
-                        {
-                            foreach (var header in headers)
-                            {
-                                request.SetRequestHeader(header.Key, header.Value);
-                            }
-                        }
-
-                        // Add auth header if not already present
-                        if (!headers?.ContainsKey("Authorization") ?? true)
-                        {
-                            request.SetRequestHeader("Authorization", GetAuthHeader());
-                        }
-
-                        request.SetRequestHeader("Content-Type", "application/json");
-
-                        // Set upload/download handlers
-                        if (!string.IsNullOrEmpty(body))
-                        {
-                            byte[] bodyRaw = Encoding.UTF8.GetBytes(body);
-                            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                        }
-                        request.downloadHandler = new DownloadHandlerBuffer();
-
-                        yield return request.SendWebRequest();
-
-                        if (request.result == UnityWebRequest.Result.Success)
-                        {
-                            try
-                            {
-                                T data = ParseJson<T>(request.downloadHandler.text);
-                                onSuccess?.Invoke(data);
-                                yield break;
-                            }
-                            catch (Exception ex)
-                            {
-                                lastError = new SkillBaseError($"Failed to parse response: {ex.Message}", (int)request.responseCode);
-                            }
-                        }
-                        else
-                        {
-                            int statusCode = (int)request.responseCode;
-                            string errorMessage = request.downloadHandler.text;
-
-                            try
-                            {
-                                var errorData = JsonUtility.FromJson<Dictionary<string, object>>(errorMessage);
-                                errorMessage = errorData.ContainsKey("message") ? errorData["message"].ToString() : errorMessage;
-                            }
-                            catch { }
-
-                            lastError = new SkillBaseError(errorMessage ?? $"HTTP {statusCode}", statusCode);
-
-                            // If it's a retryable error and we have retries left, continue
-                            if (IsRetryableError(lastError) && attempt < maxRetries && retryOnAuth)
-                            {
-                                // Exponential backoff
-                                yield return new WaitForSeconds(retryDelayMs * Mathf.Pow(2, attempt) / 1000f);
-                                continue;
-                            }
-                        }
+                        request.SetRequestHeader("Authorization", GetAuthHeader());
                     }
+
+                    request.SetRequestHeader("Content-Type", "application/json");
+
+                    // Set upload/download handlers
+                    if (!string.IsNullOrEmpty(body))
+                    {
+                        byte[] bodyRaw = Encoding.UTF8.GetBytes(body);
+                        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                    }
+                    request.downloadHandler = new DownloadHandlerBuffer();
                 }
                 catch (Exception ex)
                 {
                     lastError = new SkillBaseError($"Network error: {ex.Message}", ex, 0);
-
-                    // Retry network errors
                     if (attempt < maxRetries)
                     {
                         yield return new WaitForSeconds(retryDelayMs * Mathf.Pow(2, attempt) / 1000f);
                         continue;
+                    }
+                    break;
+                }
+
+                if (request != null)
+                {
+                    yield return request.SendWebRequest();
+
+                    requestSuccess = request.result == UnityWebRequest.Result.Success;
+                    statusCode = (int)request.responseCode;
+                    errorMessage = request.downloadHandler?.text;
+
+                    if (requestSuccess)
+                    {
+                        try
+                        {
+                            T data = ParseJson<T>(request.downloadHandler.text);
+                            request.Dispose();
+                            onSuccess?.Invoke(data);
+                            yield break;
+                        }
+                        catch (Exception ex)
+                        {
+                            lastError = new SkillBaseError($"Failed to parse response: {ex.Message}", statusCode);
+                            request.Dispose();
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                var errorData = JsonUtility.FromJson<Dictionary<string, object>>(errorMessage);
+                                errorMessage = errorData.ContainsKey("message") ? errorData["message"].ToString() : errorMessage;
+                            }
+                        }
+                        catch { }
+
+                        lastError = new SkillBaseError(errorMessage ?? $"HTTP {statusCode}", statusCode);
+                        request.Dispose();
+
+                        // If it's a retryable error and we have retries left, continue
+                        if (IsRetryableError(lastError) && attempt < maxRetries && retryOnAuth)
+                        {
+                            // Exponential backoff
+                            yield return new WaitForSeconds(retryDelayMs * Mathf.Pow(2, attempt) / 1000f);
+                            continue;
+                        }
                     }
                 }
             }
