@@ -13,9 +13,9 @@ namespace SkillBase
         private readonly SkillBaseTokenStorage _tokenStorage;
         private readonly SkillBaseClientWrapper _clientWrapper;
         
-        public SkillBaseAuth Auth { get; }
-        public SkillBaseEvents Events { get; }
-        public SkillBaseProjects Projects { get; }
+        public SkillBaseAuth Auth { get; private set; }
+        public SkillBaseEvents Events { get; private set; }
+        public SkillBaseProjects Projects { get; private set; }
 
         internal SkillBaseApp(Environment environment)
         {
