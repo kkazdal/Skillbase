@@ -35,34 +35,32 @@ SkillBase is a self-hostable backend-as-a-service platform that provides:
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
-
-- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
 - **Docker** (v20 or higher) - [Download](https://www.docker.com/)
 - **Docker Compose** (v2 or higher) - Usually included with Docker
 - **Git** - [Download](https://git-scm.com/)
 
-**Optional** (for local development without Docker):
-- **PostgreSQL** (v12 or higher) - [Download](https://www.postgresql.org/)
+**That's it!** No need for Node.js or PostgreSQL installation - Docker handles everything.
 
 ## 🚀 Quick Start (One Command!)
 
 **Get SkillBase running in under 2 minutes:**
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone <repository-url>
 cd Skillbase
 
-# Start everything (PostgreSQL + API + Migrations + Tests)
+# 2. Start everything (PostgreSQL + API + Migrations + Tests)
 npm run quick-start
 ```
 
-That's it! SkillBase is now running at `http://localhost:3000`
+**That's it!** SkillBase is now running at `http://localhost:3000`
 
 ### What Happens Automatically
 
-- ✅ PostgreSQL database starts
+When you run `npm run quick-start`:
+
+- ✅ PostgreSQL database starts automatically
 - ✅ Database is created automatically
 - ✅ Migrations run automatically
 - ✅ SkillBase API starts
@@ -85,174 +83,16 @@ curl http://localhost:3000/health
 # Navigate to SDK directory
 cd sdk
 
+# Install SDK dependencies (first time only)
+npm install
+
 # Run SDK workflow tests
 npm test
 ```
 
 **📖 For detailed Quick Start guide, see [QUICK_START.md](./QUICK_START.md)**
 
-## 📦 Manual Installation (Without Docker)
-
-If you prefer to run SkillBase without Docker:
-
-### 1. Clone and Install
-
-```bash
-git clone <repository-url>
-cd Skillbase
-npm install
-```
-
-### 2. Set Up PostgreSQL Database
-
-Create a PostgreSQL database:
-
-```bash
-# Connect to PostgreSQL
-psql -U postgres
-
-# Create database
-CREATE DATABASE skillbase;
-
-# Exit
-\q
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env` file in the root directory:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your database credentials:
-
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-DB_DATABASE=skillbase
-
-# JWT Configuration
-JWT_SECRET=your-secret-key-change-in-production-min-32-chars
-JWT_EXPIRES_IN=7d
-
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-```
-
-**⚠️ Important**: Change `JWT_SECRET` to a strong random string in production (minimum 32 characters).
-
-### 4. Create Database and Run Migrations
-
-```bash
-# Create database (if not exists)
-npm run db:create
-
-# Run database migrations
-npm run migration:run
-```
-
-### 5. Start Development Server
-
-```bash
-npm run start:dev
-```
-
-The API will be available at `http://localhost:3000`
-
-## 🔧 Development Commands
-
-```bash
-# Development mode (with hot reload)
-npm run start:dev
-
-# Build for production
-npm run build
-
-# Production mode
-npm run start:prod
-
-# Run tests
-npm run test
-
-# Run workflow tests (SDK tests)
-cd sdk && npm test
-
-# Linting
-npm run lint
-
-# Docker commands
-npm run docker:up      # Start containers
-npm run docker:down    # Stop containers
-npm run docker:logs    # View logs
-npm run docker:restart # Restart containers
-npm run docker:clean   # Remove containers and volumes
-```
-
-## 📚 API Endpoints
-
-### Authentication
-
-- `POST /auth/register` - Register a new user
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123",
-    "name": "John Doe"
-  }
-  ```
-
-- `POST /auth/login` - Login and get access token
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-
-- `POST /auth/refresh` - Refresh JWT token
-  ```json
-  {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-  ```
-
-### Projects
-
-- `GET /projects` - Get all projects (requires JWT)
-- `POST /projects` - Create a new project (requires JWT)
-- `GET /projects/:id` - Get a project by ID (requires JWT)
-- `PUT /projects/:id` - Update a project (requires JWT)
-- `DELETE /projects/:id` - Delete a project (requires JWT)
-- `POST /projects/:id/regenerate-api-key` - Regenerate API key (requires JWT)
-
-### Events
-
-- `POST /v1/events` - Create a new event (requires API key)
-  ```json
-  {
-    "userId": "user_123",
-    "event": "level_completed",
-    "value": 150,
-    "meta": { "level": 5, "score": 1000 }
-  }
-  ```
-
-- `GET /v1/events` - Get all events for the project (requires API key)
-- `GET /v1/events?userId=<userId>` - Get events filtered by userId (requires API key)
-
-### Health
-
-- `GET /health` - Health check endpoint
-
-## 📦 SDKs
-
-SkillBase provides official SDKs for easy integration:
+## 📚 SDK Quick Examples
 
 ### JavaScript/TypeScript SDK
 
@@ -261,7 +101,7 @@ SkillBase provides official SDKs for easy integration:
 npm install @skillbase/event-sdk
 ```
 
-**Quick Start:**
+**Quick Example:**
 ```typescript
 import { SkillBaseClient } from '@skillbase/event-sdk';
 
@@ -279,7 +119,7 @@ const project = await client.createProject('My Game');
 client.setApiKey(project.apiKey);
 
 // Track events
-const event = await client.createEvent(
+await client.createEvent(
   auth.user.id,
   'level_completed',
   150,
@@ -302,15 +142,9 @@ const events = await client.getEvents(auth.user.id);
 - 📱 Mobile-ready error handling
 - 📝 Full TypeScript support
 
-For detailed SDK documentation, see [sdk/README.md](./sdk/README.md).
-
 ### Unity C# SDK
 
-**Installation:**
-1. Copy `sdk-unity/Runtime/SkillBase` folder to your Unity project's `Assets` folder
-2. Or use Unity Package Manager with Git URL
-
-**Quick Start:**
+**Quick Example:**
 ```csharp
 using SkillBase;
 
@@ -331,13 +165,78 @@ client.Login("user@example.com", "password123",
 );
 
 // Track events
+var metadata = new Dictionary<string, object>
+{
+    { "level", 5 },
+    { "score", 1000 }
+};
+
 client.CreateEvent(userId, "level_completed", 150, metadata,
     (evt) => Debug.Log("Event tracked"),
     (error) => Debug.LogError(error.Message)
 );
 ```
 
-For detailed Unity SDK documentation, see [sdk-unity/README.md](./sdk-unity/README.md).
+**📖 For detailed SDK documentation:**
+- [JavaScript/TypeScript SDK](./sdk/README.md)
+- [Unity C# SDK](./sdk-unity/README.md)
+- [Mobile SDK Guide](./MOBILE_SDK_GUIDE.md)
+
+## 🔧 Quick Commands
+
+```bash
+# Start services
+npm run quick-start
+
+# View logs
+npm run quick-start:logs
+
+# Restart services
+npm run quick-start:restart
+
+# Stop services
+npm run docker:down
+
+# Clean everything (removes volumes)
+npm run quick-start:clean
+```
+
+## 📖 API Endpoints
+
+### Authentication
+
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login and get access token
+- `POST /auth/refresh` - Refresh JWT token
+
+### Projects
+
+- `GET /projects` - Get all projects (requires JWT)
+- `POST /projects` - Create a new project (requires JWT)
+- `GET /projects/:id` - Get a project by ID (requires JWT)
+- `POST /projects/:id/regenerate-api-key` - Regenerate API key (requires JWT)
+
+### Events
+
+- `POST /v1/events` - Create a new event (requires API key)
+- `GET /v1/events` - Get all events for the project (requires API key)
+- `GET /v1/events?userId=<userId>` - Get events filtered by userId (requires API key)
+
+### Health
+
+- `GET /health` - Health check endpoint
+
+**Example API Call:**
+```bash
+# Register a user
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123",
+    "name": "Test User"
+  }'
+```
 
 ## 🔑 API Key Architecture
 
@@ -352,11 +251,6 @@ skb_<env>_<keyId>_<secret>
 - `live`: Production environment
 - `test`: Testing/development environment
 
-**Example:**
-```
-skb_live_482716ed5cb3ede4_6020414cd14db2644137b9dd14e72728b4019d5102e0a2cdb047602c1fcb79ff
-```
-
 **Performance:**
 - ✅ **1 database query** (indexed lookup by keyId)
 - ✅ **1 bcrypt compare** (secret validation)
@@ -368,6 +262,85 @@ skb_live_482716ed5cb3ede4_6020414cd14db2644137b9dd14e72728b4019d5102e0a2cdb04760
 - 🔐 keyId is indexed but not sensitive
 - 🔐 Old keys are invalidated on regeneration
 - 🔐 No plain text secrets in database
+
+## 🧪 Testing
+
+```bash
+# Run SDK workflow tests
+cd sdk && npm test
+
+# Run backend unit tests
+npm run test
+```
+
+The SDK includes comprehensive workflow tests:
+- ✅ Auth Workflow (Register, Login, Refresh Token)
+- ✅ Event API (Create Event, Get Events)
+- ✅ Error Handling
+- ✅ Token Persistence
+- ✅ Retry Mechanism
+
+See [tests/WORKFLOW_TEST_GUIDE.md](./tests/WORKFLOW_TEST_GUIDE.md) for detailed testing documentation.
+
+## 🔍 Troubleshooting
+
+### Port Already in Use
+
+```bash
+# Edit .env.docker and change PORT
+PORT=3001
+
+# Restart
+npm run quick-start:restart
+```
+
+### Docker Not Running
+
+```bash
+# Check Docker status
+docker ps
+
+# Start Docker Desktop (macOS/Windows)
+# Or start Docker service (Linux)
+sudo systemctl start docker
+```
+
+### API Not Starting
+
+```bash
+# Check API logs
+npm run quick-start:logs
+
+# Rebuild and restart
+npm run quick-start:restart
+```
+
+### Clean Start (Fresh Install)
+
+```bash
+# Stop and remove everything
+npm run quick-start:clean
+
+# Start fresh
+npm run quick-start
+```
+
+**📖 For more troubleshooting, see [QUICK_START.md](./QUICK_START.md#-troubleshooting)**
+
+## 📖 Additional Documentation
+
+- **[QUICK_START.md](./QUICK_START.md)** - Detailed Quick Start guide with troubleshooting
+- **[MANUAL_INSTALL.md](./MANUAL_INSTALL.md)** - Manual installation without Docker
+- **[SDK Documentation](./sdk/README.md)** - Complete JavaScript/TypeScript SDK reference
+- **[Unity SDK Documentation](./sdk-unity/README.md)** - Unity C# SDK integration guide
+- **[Mobile SDK Guide](./MOBILE_SDK_GUIDE.md)** - Mobile development guide
+- **[Workflow Test Guide](./tests/WORKFLOW_TEST_GUIDE.md)** - Testing documentation
+
+## 🚀 Advanced / Manual Installation
+
+If you prefer to run SkillBase without Docker or need custom configuration:
+
+**→ See [MANUAL_INSTALL.md](./MANUAL_INSTALL.md) for detailed manual installation instructions.**
 
 ## 📁 Project Structure
 
@@ -395,125 +368,6 @@ Skillbase/
 ├── Dockerfile             # Docker image definition
 └── package.json           # Node.js dependencies
 ```
-
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-# Run unit tests
-npm run test
-
-# Run SDK workflow tests
-cd sdk && npm test
-```
-
-### SDK Tests
-
-The SDK includes comprehensive workflow tests:
-
-- ✅ Auth Workflow (Register, Login, Refresh Token)
-- ✅ Event API (Create Event, Get Events)
-- ✅ Error Handling
-- ✅ Token Persistence
-- ✅ Retry Mechanism
-
-See [tests/WORKFLOW_TEST_GUIDE.md](./tests/WORKFLOW_TEST_GUIDE.md) for detailed testing documentation.
-
-## 🐳 Docker Usage
-
-### Start Services
-
-```bash
-docker-compose up -d
-```
-
-### View Logs
-
-```bash
-# All services
-docker-compose logs -f
-
-# API only
-docker-compose logs -f api
-
-# PostgreSQL only
-docker-compose logs -f postgres
-```
-
-### Stop Services
-
-```bash
-docker-compose down
-```
-
-### Clean Everything (including volumes)
-
-```bash
-docker-compose down -v
-```
-
-### Rebuild After Code Changes
-
-```bash
-docker-compose build api
-docker-compose up -d api
-```
-
-## 🔍 Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Check if PostgreSQL is running
-docker-compose ps
-
-# Check PostgreSQL logs
-docker-compose logs postgres
-
-# Restart PostgreSQL
-docker-compose restart postgres
-```
-
-### API Not Starting
-
-```bash
-# Check API logs
-docker-compose logs api
-
-# Rebuild API container
-docker-compose build api
-docker-compose up -d api
-```
-
-### Migration Issues
-
-```bash
-# Check migration status
-npm run migration:show
-
-# Run migrations manually
-npm run migration:run
-
-# Revert last migration (if needed)
-npm run migration:revert
-```
-
-### Port Already in Use
-
-If port 3000 is already in use:
-
-1. Change `PORT` in `.env` file
-2. Update `docker-compose.yml` port mapping
-3. Restart containers
-
-## 📖 Additional Documentation
-
-- [Docker Quick Start](./DOCKER_QUICKSTART.md) - Detailed Docker setup guide
-- [SDK Documentation](./sdk/README.md) - Complete SDK reference
-- [Unity SDK Documentation](./sdk-unity/README.md) - Unity integration guide
-- [Mobile SDK Guide](./MOBILE_SDK_GUIDE.md) - Mobile development guide
-- [Workflow Test Guide](./tests/WORKFLOW_TEST_GUIDE.md) - Testing documentation
 
 ## 🤝 Contributing
 
