@@ -28,7 +28,12 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f postgres",
     "docker:restart": "docker-compose restart postgres",
-    "docker:clean": "docker-compose down -v"
+    "docker:clean": "docker-compose down -v",
+    "quick-start": "./scripts/quick-start.sh",
+    "quick-start:build": "docker-compose up --build -d",
+    "quick-start:clean": "docker-compose down -v",
+    "quick-start:logs": "docker-compose logs -f",
+    "quick-start:restart": "docker-compose restart"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

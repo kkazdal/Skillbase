@@ -45,34 +45,31 @@ Before you begin, ensure you have the following installed:
 **Optional** (for local development without Docker):
 - **PostgreSQL** (v12 or higher) - [Download](https://www.postgresql.org/)
 
-## 🚀 Quick Start with Docker (Recommended)
+## 🚀 Quick Start (One Command!)
 
-The easiest way to get started is using Docker Compose:
-
-### 1. Clone the Repository
+**Get SkillBase running in under 2 minutes:**
 
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd Skillbase
+
+# Start everything (PostgreSQL + API + Migrations + Tests)
+npm run quick-start
 ```
 
-### 2. Start Services
+That's it! SkillBase is now running at `http://localhost:3000`
 
-```bash
-# Start PostgreSQL and API containers
-docker-compose up -d
+### What Happens Automatically
 
-# Check if containers are running
-docker-compose ps
-```
+- ✅ PostgreSQL database starts
+- ✅ Database is created automatically
+- ✅ Migrations run automatically
+- ✅ SkillBase API starts
+- ✅ SDK tests run (in development mode)
+- ✅ API health check passes
 
-This will:
-- Start PostgreSQL database on port `5432`
-- Start SkillBase API on port `3000`
-- Automatically create the database
-- Run database migrations
-
-### 3. Verify Installation
+### Verify Installation
 
 ```bash
 # Check API health
@@ -82,12 +79,17 @@ curl http://localhost:3000/health
 # {"status":"ok","timestamp":"...","service":"skillbase-api"}
 ```
 
-### 4. Access the API
+### Try the SDK
 
-The API is now available at:
-- **API Base URL**: `http://localhost:3000`
-- **Health Check**: `http://localhost:3000/health`
-- **API Documentation**: `http://localhost:3000/api` (if Swagger is enabled)
+```bash
+# Navigate to SDK directory
+cd sdk
+
+# Run SDK workflow tests
+npm test
+```
+
+**📖 For detailed Quick Start guide, see [QUICK_START.md](./QUICK_START.md)**
 
 ## 📦 Manual Installation (Without Docker)
 
