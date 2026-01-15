@@ -31,7 +31,7 @@ namespace SkillBase
             Action<Project, string> onSuccess = null,
             Action<SkillBaseError> onError = null)
         {
-            if (!SkillBase.IsAuthenticated)
+            if (!SkillBaseSDK.IsAuthenticated)
             {
                 onError?.Invoke(new SkillBaseError("User must be authenticated to create projects", 401));
                 return;
@@ -62,7 +62,7 @@ namespace SkillBase
             Action<Project[]> onSuccess = null,
             Action<SkillBaseError> onError = null)
         {
-            if (!SkillBase.IsAuthenticated)
+            if (!SkillBaseSDK.IsAuthenticated)
             {
                 onError?.Invoke(new SkillBaseError("User must be authenticated to list projects", 401));
                 return;

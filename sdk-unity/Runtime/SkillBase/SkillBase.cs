@@ -7,7 +7,7 @@ namespace SkillBase
     /// Main entry point for SkillBase Unity SDK
     /// Firebase/PlayFab-style simple API
     /// </summary>
-    public static class SkillBase
+    public static class SkillBaseSDK
     {
         private static bool _isInitialized = false;
         private static SkillBaseApp _app;
@@ -104,7 +104,7 @@ namespace SkillBase
             if (!_isInitialized)
             {
                 throw new InvalidOperationException(
-                    "SkillBase is not initialized. Call SkillBase.Initialize() first in your game's startup code."
+                    "SkillBase is not initialized. Call SkillBaseSDK.Initialize() first in your game's startup code."
                 );
             }
         }
@@ -134,6 +134,23 @@ namespace SkillBase
         /// Production: Uses api.skillbase.com
         /// </summary>
         Production
+    }
+
+    /// <summary>
+    /// Backward compatibility alias for SkillBaseSDK
+    /// Use SkillBaseSDK for new code
+    /// </summary>
+    [System.Obsolete("Use SkillBaseSDK instead. This alias will be removed in a future version.")]
+    public static class SkillBase
+    {
+        public static void Initialize(Environment environment = Environment.Development) => SkillBaseSDK.Initialize(environment);
+        public static void Initialize(SkillBaseConfig config) => SkillBaseSDK.Initialize(config);
+        public static bool IsInitialized => SkillBaseSDK.IsInitialized;
+        public static SkillBaseAuth Auth => SkillBaseSDK.Auth;
+        public static SkillBaseEvents Events => SkillBaseSDK.Events;
+        public static SkillBaseProjects Projects => SkillBaseSDK.Projects;
+        public static User CurrentUser => SkillBaseSDK.CurrentUser;
+        public static bool IsAuthenticated => SkillBaseSDK.IsAuthenticated;
     }
 }
 

@@ -33,7 +33,7 @@ namespace SkillBase
             Action<SkillBaseError> onError = null)
         {
             // Use current user ID if authenticated, otherwise require userId in metadata
-            string userId = SkillBase.CurrentUser?.id;
+            string userId = SkillBaseSDK.CurrentUser?.id;
             
             if (string.IsNullOrEmpty(userId))
             {
@@ -69,7 +69,7 @@ namespace SkillBase
             Action<Event[]> onSuccess = null,
             Action<SkillBaseError> onError = null)
         {
-            string userId = SkillBase.CurrentUser?.id;
+            string userId = SkillBaseSDK.CurrentUser?.id;
             
             if (string.IsNullOrEmpty(userId))
             {
