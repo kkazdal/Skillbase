@@ -19,9 +19,20 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     // Validate API key and get associated project
+    // validateApiKey checks expiration internally and returns null if expired
     const project = await this.projectsService.validateApiKey(apiKey);
 
     if (!project) {
+      // Could be invalid key or expired key - validateApiKey handles both
+      // Check if key format is valid to provide more specific error
+      const parts = apiKey.split('_');
+      const isValidFormat = parts.length >= 4 && parts[0] === 'skb';
+      
+      if (isValidFormat) {
+        // Format is valid but project is null - likely expired
+        throw new UnauthorizedException('API key has expired');
+      }
+      
       throw new UnauthorizedException('Invalid API key');
     }
 

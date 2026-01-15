@@ -58,6 +58,12 @@ DB_DATABASE=skillbase
 JWT_SECRET=your-secret-key-change-in-production-min-32-chars-long
 JWT_EXPIRES_IN=7d
 
+# API Key Configuration
+# Optional: Set expiration for API keys (format: s, m, h, d)
+# Examples: 7d (7 days), 30d (30 days), 1y (1 year), null (no expiration)
+# If not set, API keys will not expire
+API_KEY_EXPIRES_IN=30d
+
 # Server Configuration
 PORT=3000
 NODE_ENV=development

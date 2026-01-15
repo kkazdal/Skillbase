@@ -8,12 +8,14 @@ import { Project } from './project.entity';
 import { UsersModule } from '../users/users.module';
 import { AuthGuard } from '../common/guards/auth.guard';
 import jwtConfig from '../config/jwt.config';
+import apiKeyConfig from '../config/api-key.config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Project]),
     UsersModule,
     ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(apiKeyConfig),
     JwtModule.registerAsync({
       imports: [ConfigModule.forFeature(jwtConfig)],
       useFactory: async (configService: ConfigService) => ({

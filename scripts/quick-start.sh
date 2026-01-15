@@ -44,6 +44,8 @@ DB_DATABASE=skillbase
 JWT_SECRET=dev-secret-key-change-in-production-min-32-chars-long
 JWT_EXPIRES_IN=7d
 
+API_KEY_EXPIRES_IN=30d
+
 PORT=3000
 NODE_ENV=development
 EOF

@@ -1,15 +1,18 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Project, ProjectEnvironment } from './project.entity';
 import { User } from '../users/user.entity';
 import { generateApiKey } from '../common/utils/generate-api-key';
+import { calculateExpirationDate } from '../common/utils/calculate-expiration';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
+    private configService: ConfigService,
   ) {}
 
   async create(
@@ -20,11 +23,16 @@ export class ProjectsService {
     // Generate API key with format: skb_<env>_<keyId>_<secret>
     const { environment, fullKey } = generateApiKey();
 
+    // Calculate expiration date if API_KEY_EXPIRES_IN is configured
+    const expiresIn = this.configService.get<string | null>('apiKey.expiresIn');
+    const apiKeyExpiresAt = calculateExpirationDate(expiresIn);
+
     const project = this.projectsRepository.create({
       name,
       userId: user.id,
       apiKey: fullKey,
       environment: environment === 'test' ? ProjectEnvironment.TEST : ProjectEnvironment.LIVE,
+      apiKeyExpiresAt,
     });
 
     const savedProject = await this.projectsRepository.save(project);
@@ -91,6 +99,7 @@ export class ProjectsService {
    * 1. Parse API key to extract environment
    * 2. Validate environment (live/test)
    * 3. Lookup project by full apiKey (unique, indexed)
+   * 4. Check expiration (if apiKeyExpiresAt is set and in the past, return null)
    * 
    * Performance:
    * - ✅ 1 database query (indexed lookup by apiKey)
@@ -114,10 +123,24 @@ export class ProjectsService {
     }
 
     // Lookup project by full apiKey
-    return this.projectsRepository.findOne({
+    const project = await this.projectsRepository.findOne({
       where: { apiKey },
       relations: ['user'],
     });
+
+    if (!project) {
+      return null;
+    }
+
+    // Check expiration: if apiKeyExpiresAt is set and in the past, key is expired
+    if (project.apiKeyExpiresAt) {
+      const now = new Date();
+      if (project.apiKeyExpiresAt < now) {
+        return null; // Key has expired
+      }
+    }
+
+    return project;
   }
 
   async regenerateApiKey(
@@ -129,10 +152,15 @@ export class ProjectsService {
     // Generate new API key with new format
     const { environment, fullKey } = generateApiKey();
 
+    // Calculate expiration date if API_KEY_EXPIRES_IN is configured
+    const expiresIn = this.configService.get<string | null>('apiKey.expiresIn');
+    const apiKeyExpiresAt = calculateExpirationDate(expiresIn);
+
     // Update apiKey (old key is invalidated)
     project.apiKey = fullKey;
     project.environment =
       environment === 'test' ? ProjectEnvironment.TEST : ProjectEnvironment.LIVE;
+    project.apiKeyExpiresAt = apiKeyExpiresAt;
     await this.projectsRepository.save(project);
 
     return { apiKey: fullKey }; // Return plain API key only once

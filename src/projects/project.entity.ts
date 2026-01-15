@@ -42,5 +42,8 @@ export class Project {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @Column({ name: 'api_key_expires_at', type: 'timestamp', nullable: true })
+  apiKeyExpiresAt: Date | null;
 }
 
