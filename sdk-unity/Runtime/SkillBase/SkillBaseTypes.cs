@@ -115,5 +115,45 @@ namespace SkillBase
     {
         public Project[] items;
     }
+
+    /// <summary>
+    /// Register request payload
+    /// </summary>
+    [Serializable]
+    internal class RegisterRequest
+    {
+        public string email;
+        public string password;
+        public string name;
+    }
+
+    /// <summary>
+    /// Login request payload
+    /// </summary>
+    [Serializable]
+    internal class LoginRequest
+    {
+        public string email;
+        public string password;
+    }
+
+    /// <summary>
+    /// Refresh token request payload
+    /// </summary>
+    [Serializable]
+    internal class RefreshTokenRequest
+    {
+        public string token;
+    }
+
+    /// <summary>
+    /// Create project request payload
+    /// </summary>
+    [Serializable]
+    internal class CreateProjectRequest
+    {
+        public string name;
+        public string description;
+    }
 }
 

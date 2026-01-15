@@ -279,7 +279,13 @@ namespace SkillBase
         /// </summary>
         public void Register(MonoBehaviour coroutineRunner, string email, string password, string name, Action<AuthResponse> onSuccess, Action<SkillBaseError> onError)
         {
-            var body = JsonUtility.ToJson(new { email, password, name });
+            var request = new RegisterRequest
+            {
+                email = email,
+                password = password,
+                name = name
+            };
+            var body = JsonUtility.ToJson(request);
             var headers = new Dictionary<string, string>();
 
             coroutineRunner.StartCoroutine(Request<AuthResponse>(
@@ -306,7 +312,12 @@ namespace SkillBase
         /// </summary>
         public void Login(MonoBehaviour coroutineRunner, string email, string password, Action<AuthResponse> onSuccess, Action<SkillBaseError> onError)
         {
-            var body = JsonUtility.ToJson(new { email, password });
+            var request = new LoginRequest
+            {
+                email = email,
+                password = password
+            };
+            var body = JsonUtility.ToJson(request);
             var headers = new Dictionary<string, string>();
 
             coroutineRunner.StartCoroutine(Request<AuthResponse>(
@@ -340,7 +351,8 @@ namespace SkillBase
             }
 
             bool success = false;
-            var body = JsonUtility.ToJson(new { token = jwt });
+            var request = new RefreshTokenRequest { token = jwt };
+            var body = JsonUtility.ToJson(request);
 
             yield return Request<AuthResponse>(
                 coroutineRunner,
@@ -523,7 +535,12 @@ namespace SkillBase
             Action<CreateProjectResponse> onSuccess,
             Action<SkillBaseError> onError)
         {
-            var body = JsonUtility.ToJson(new { name, description });
+            var request = new CreateProjectRequest
+            {
+                name = name,
+                description = description
+            };
+            var body = JsonUtility.ToJson(request);
             var headers = new Dictionary<string, string>
             {
                 { "Authorization", GetAuthHeader() }
