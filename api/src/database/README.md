@@ -5,7 +5,7 @@ Production-ready database configuration for SkillBase using TypeORM and PostgreS
 ## Structure
 
 ```
-src/database/
+api/src/database/
 ├── data-source.ts       # TypeORM DataSource configuration
 ├── database.module.ts   # NestJS database module
 └── migrations/         # Database migration files
@@ -42,7 +42,7 @@ npm run migration:revert
 
 ### Generate New Migration
 ```bash
-npm run migration:generate src/database/migrations/MigrationName
+npm run migration:generate api/src/database/migrations/MigrationName
 ```
 
 ### Show Migration Status

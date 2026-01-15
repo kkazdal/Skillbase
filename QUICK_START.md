@@ -146,7 +146,7 @@ await client.createEvent(
 - **Full Workflow**: `sdk/examples/full-workflow.ts`
 - **Mobile Ready**: `sdk/examples/mobile-ready.ts`
 - **Error Handling**: `sdk/examples/error-handling.js`
-- **Unity**: `sdk-unity/Examples/SkillBaseExample.cs`
+- **Unity**: See [sdk-unity/README.md](./sdk-unity/README.md) for Unity integration guide
 
 ## 🛠 Troubleshooting
 

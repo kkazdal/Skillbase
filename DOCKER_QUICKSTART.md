@@ -119,7 +119,7 @@ npm run migration:show
 ### Yeni Migration Oluştur
 ```bash
 cp .env.docker .env
-npm run migration:generate src/database/migrations/MigrationName
+npm run migration:generate api/src/database/migrations/MigrationName
 ```
 
 ### Son Migration'ı Geri Al

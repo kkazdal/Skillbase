@@ -15,8 +15,12 @@ COPY package*.json ./
 # Using npm ci for faster, reliable, reproducible builds
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Copy source code and config files
+COPY api ./api
+COPY tsconfig.json ./
+COPY nest-cli.json ./
+COPY scripts ./scripts
+COPY sdk ./sdk
 
 # Build the application
 RUN npm run build
@@ -34,12 +38,17 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig.json ./
+COPY nest-cli.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Copy API source for migrations (migrations need TypeScript source)
+COPY --from=builder /app/api ./api
 
 # Copy SDK for testing (in development mode)
 # Only copy SDK source and package.json, dependencies will be installed at runtime

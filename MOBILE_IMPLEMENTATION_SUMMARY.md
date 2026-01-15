@@ -9,9 +9,9 @@
 - ✅ Validates existing token and returns new token
 - ✅ Mobile-friendly: Allows apps to refresh before expiration
 - **Files:**
-  - `src/auth/auth.controller.ts` - Added refresh endpoint
-  - `src/auth/auth.service.ts` - Added `refreshToken()` method
-  - `src/auth/dto/refresh-token.dto.ts` - DTO for refresh request
+  - `api/src/auth/auth.controller.ts` - Added refresh endpoint
+  - `api/src/auth/auth.service.ts` - Added `refreshToken()` method
+  - `api/src/auth/dto/refresh-token.dto.ts` - DTO for refresh request
 
 ### 2. JavaScript/TypeScript SDK Enhancements
 
@@ -58,7 +58,7 @@
 - `sdk-unity/Runtime/SkillBase/SkillBaseTypes.cs`
 - `sdk-unity/Runtime/SkillBase/SkillBaseError.cs`
 - `sdk-unity/Runtime/SkillBase/SkillBaseClientWrapper.cs`
-- `sdk-unity/Examples/SkillBaseExample.cs`
+- Unity examples: See [sdk-unity/README.md](../sdk-unity/README.md)
 - `sdk-unity/README.md`
 - `sdk-unity/package.json`
 

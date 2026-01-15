@@ -346,13 +346,14 @@ If you prefer to run SkillBase without Docker or need custom configuration:
 
 ```
 Skillbase/
-├── src/                    # Backend source code
-│   ├── auth/              # Authentication module
-│   ├── events/            # Event tracking module
-│   ├── projects/          # Project management module
-│   ├── users/             # User management module
-│   ├── database/          # Database configuration & migrations
-│   └── common/            # Shared utilities, guards, decorators
+├── api/                    # NestJS backend
+│   └── src/               # Backend source code
+│       ├── auth/          # Authentication module
+│       ├── events/        # Event tracking module
+│       ├── projects/      # Project management module
+│       ├── users/         # User management module
+│       ├── database/      # Database configuration & migrations
+│       └── common/        # Shared utilities, guards, decorators
 │
 ├── sdk/                    # JavaScript/TypeScript SDK
 │   ├── src/               # SDK source code
@@ -362,6 +363,9 @@ Skillbase/
 ├── sdk-unity/             # Unity C# SDK
 │   ├── Runtime/           # SDK runtime code
 │   └── Examples/          # Unity examples
+│
+├── ui/                     # Next.js UI (coming soon)
+│   └── app/               # Next.js app directory
 │
 ├── tests/                 # Integration tests
 ├── docker-compose.yml     # Docker Compose configuration

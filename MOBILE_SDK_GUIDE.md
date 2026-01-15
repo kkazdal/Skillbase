@@ -206,7 +206,7 @@ const events = await client.getEvents(userId);
 
 ### Complete Example
 
-See `sdk-unity/Examples/SkillBaseExample.cs` for full example.
+See [sdk-unity/README.md](../sdk-unity/README.md) for complete Unity integration guide and examples.
 
 ### Key Features
 
@@ -271,7 +271,7 @@ Test mobile scenarios:
 ## Examples
 
 - **JavaScript/TypeScript**: `sdk/examples/mobile-ready.ts`
-- **Unity**: `sdk-unity/Examples/SkillBaseExample.cs`
+- **Unity**: See [sdk-unity/README.md](../sdk-unity/README.md) for Unity examples
 - **Complete workflow**: `sdk/examples/full-workflow.ts`
 
 ## Support

@@ -35,7 +35,7 @@ npm run migration:run
 npm run migration:show
 
 # Yeni migration oluştur
-npm run migration:generate src/database/migrations/MigrationName
+npm run migration:generate api/src/database/migrations/MigrationName
 
 # Son migration'ı geri al
 npm run migration:revert

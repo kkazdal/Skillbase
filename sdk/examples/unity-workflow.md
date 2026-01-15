@@ -344,7 +344,7 @@ void TryProcessQueue()
 
 ## Complete Example
 
-See `Examples/SkillBaseExample.cs` for a complete working example.
+See [sdk-unity/README.md](../../sdk-unity/README.md) for a complete working example.
 
 ## Best Practices
 

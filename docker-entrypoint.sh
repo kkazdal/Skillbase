@@ -46,5 +46,5 @@ fi
 
 # Start the application
 echo "🎯 Starting SkillBase API..."
-exec node dist/src/main.js
+exec node dist/api/src/main.js
 

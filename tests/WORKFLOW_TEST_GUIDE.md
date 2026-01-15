@@ -67,8 +67,8 @@ npm test
 
 2. **Add Test Script**
    - Create an empty GameObject in your scene
-   - Attach `SkillBaseWorkflowTest.cs` to the GameObject
-   - The script is located at: `sdk-unity/Examples/SkillBaseWorkflowTest.cs`
+   - Create a test script using the SkillBase SDK
+   - See [sdk-unity/README.md](../sdk-unity/README.md) for integration guide
 
 3. **Run Tests**
    - Press Play in Unity Editor

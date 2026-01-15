@@ -9,6 +9,17 @@ This guide covers manual installation of SkillBase without Docker. For the faste
 - **npm** or **yarn**
 - **Git** - [Download](https://git-scm.com/)
 
+## Project Structure
+
+```
+skillbase/
+├── api/              # NestJS backend
+│   └── src/         # Backend source code
+├── sdk/             # JavaScript/TypeScript SDK
+├── sdk-unity/       # Unity C# SDK
+└── ui/              # Next.js UI (coming soon)
+```
+
 ## Installation Steps
 
 ### 1. Clone and Install
