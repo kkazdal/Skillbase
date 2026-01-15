@@ -20,17 +20,45 @@ namespace SkillBase
         internal SkillBaseApp(Environment environment)
         {
             _config = SkillBaseConfig.Default(environment);
-            Initialize();
+            
+            // Create token storage (handles PlayerPrefs automatically)
+            _tokenStorage = new SkillBaseTokenStorage();
+
+            // Create internal client wrapper
+            var gameObject = new GameObject("SkillBaseApp");
+            UnityEngine.Object.DontDestroyOnLoad(gameObject);
+            _clientWrapper = gameObject.AddComponent<SkillBaseClientWrapper>();
+
+            // Initialize internal client with auto token management
+            _clientWrapper.Initialize(new SkillBaseClientOptions
+            {
+                baseUrl = _config.BaseUrl,
+                maxRetries = _config.MaxRetries,
+                retryDelayMs = _config.RetryDelayMs,
+                autoRefreshToken = true,
+                onTokenRefresh = (token) =>
+                {
+                    _tokenStorage.SaveToken(token);
+                }
+            });
+
+            // Load saved token if exists
+            var savedToken = _tokenStorage.LoadToken();
+            if (!string.IsNullOrEmpty(savedToken))
+            {
+                _clientWrapper.Client.SetJwt(savedToken);
+            }
+
+            // Create public API facades
+            Auth = new SkillBaseAuth(_clientWrapper, _tokenStorage);
+            Events = new SkillBaseEvents(_clientWrapper);
+            Projects = new SkillBaseProjects(_clientWrapper);
         }
 
         internal SkillBaseApp(SkillBaseConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            Initialize();
-        }
-
-        private void Initialize()
-        {
+            
             // Create token storage (handles PlayerPrefs automatically)
             _tokenStorage = new SkillBaseTokenStorage();
 
