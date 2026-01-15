@@ -1,0 +1,20 @@
+{
+  "name": "com.skillbase.sdk",
+  "version": "1.0.0",
+  "displayName": "SkillBase SDK",
+  "description": "Unity SDK for SkillBase - Game-first backend platform",
+  "unity": "2020.3",
+  "keywords": [
+    "skillbase",
+    "backend",
+    "analytics",
+    "events",
+    "sdk"
+  ],
+  "author": {
+    "name": "SkillBase",
+    "email": "support@skillbase.com"
+  },
+  "dependencies": {}
+}
+

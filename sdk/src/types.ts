@@ -94,6 +94,14 @@ export interface SkillBaseClientOptions {
   jwt?: string;
   /** Base URL for the API (optional, defaults to http://localhost:3000) */
   baseUrl?: string;
+  /** Maximum number of retry attempts for failed requests (default: 3) */
+  maxRetries?: number;
+  /** Retry delay in milliseconds (default: 1000) */
+  retryDelay?: number;
+  /** Enable automatic token refresh (default: true) */
+  autoRefreshToken?: boolean;
+  /** Callback for token refresh (optional) */
+  onTokenRefresh?: (newToken: string) => void;
 }
 
 /**

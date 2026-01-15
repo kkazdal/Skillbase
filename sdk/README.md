@@ -1,15 +1,18 @@
 # SkillBase Full SDK
 
-Complete JavaScript/TypeScript SDK for interacting with the SkillBase API. Supports **Auth**, **Project**, and **Event** APIs. Works in both Node.js and browser environments.
+Complete JavaScript/TypeScript SDK for interacting with the SkillBase API. Supports **Auth**, **Project**, and **Event** APIs. Works in Node.js, browsers, and mobile apps.
 
 ## Features
 
-- 🔐 **Authentication**: Register, login, and JWT management
+- 🔐 **Authentication**: Register, login, logout, and JWT token refresh
 - 📦 **Project Management**: Create, list, and manage projects with API keys
 - 📊 **Event Tracking**: Create and retrieve events with metadata
 - 🔑 **Dual Auth Support**: Use API keys or JWT tokens
 - 📝 **Full TypeScript Support**: Complete type definitions included
-- 🌐 **Universal**: Works in Node.js and browsers
+- 🌐 **Universal**: Works in Node.js, browsers, React Native, and Unity
+- 🔄 **Mobile-Ready**: Automatic retry, token refresh, and network error handling
+- ⚡ **Retry Mechanism**: Exponential backoff for failed requests
+- 🔒 **Token Management**: Automatic token refresh and persistence callbacks
 
 ## Installation
 
@@ -97,8 +100,12 @@ new SkillBaseClient(options: SkillBaseClientOptions)
 - `apiKey` (string, optional): API key for Event API (project-specific)
 - `jwt` (string, optional): JWT token for Auth and Project APIs (user-specific)
 - `baseUrl` (string, optional): Base URL for the API. Defaults to `http://localhost:3000`
+- `maxRetries` (number, optional): Maximum retry attempts (default: 3)
+- `retryDelay` (number, optional): Retry delay in milliseconds (default: 1000)
+- `autoRefreshToken` (boolean, optional): Enable automatic token refresh on 401 (default: true)
+- `onTokenRefresh` (function, optional): Callback when token is refreshed
 
-**Note:** Either `apiKey` or `jwt` must be provided (or both).
+**Note:** Either `apiKey` or `jwt` must be provided (or both). For register/login, neither is required initially.
 
 **Example:**
 ```typescript
@@ -154,6 +161,23 @@ Logs in a user.
 ```typescript
 const auth = await client.login('user@example.com', 'password123');
 // JWT is automatically set
+```
+
+###### `refreshToken()`
+
+Refreshes the current JWT token. Mobile-friendly: Allows apps to refresh tokens before expiration.
+
+**Returns:** `Promise<AuthResponse>`
+
+**Example:**
+```typescript
+try {
+  const auth = await client.refreshToken();
+  console.log('Token refreshed:', auth.accessToken);
+} catch (error) {
+  // Token expired or invalid, need to login again
+  await client.login(email, password);
+}
 ```
 
 ###### `logout()`
@@ -574,6 +598,72 @@ const projects: Project[] = await client.listProjects();
 ## License
 
 MIT
+
+## Mobile Examples
+
+### React Native Example
+
+```typescript
+import { SkillBaseClient } from '@skillbase/event-sdk';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Initialize with mobile-ready options
+const client = new SkillBaseClient({
+  baseUrl: 'https://api.skillbase.com',
+  maxRetries: 3,
+  retryDelay: 1000,
+  autoRefreshToken: true,
+  onTokenRefresh: async (token) => {
+    await AsyncStorage.setItem('jwt_token', token);
+  }
+});
+
+// Load saved token
+const savedToken = await AsyncStorage.getItem('jwt_token');
+if (savedToken) client.setJwt(savedToken);
+
+// Login
+await client.login('user@example.com', 'password123');
+
+// Track event (with automatic retry)
+await client.createEvent(
+  userId,
+  'level_completed',
+  150,
+  { level: 5, score: 1000 }
+);
+```
+
+### Unity Example
+
+```csharp
+using SkillBase;
+
+// Initialize
+var client = SkillBaseClientWrapper.Instance;
+client.Initialize(new SkillBaseClientOptions
+{
+    baseUrl = "https://api.skillbase.com",
+    maxRetries = 3,
+    retryDelayMs = 1000,
+    autoRefreshToken = true,
+    onTokenRefresh = (token) => PlayerPrefs.SetString("jwt_token", token)
+});
+
+// Login
+client.Login("user@example.com", "password123",
+    (auth) => Debug.Log("Logged in"),
+    (error) => Debug.LogError(error.Message)
+);
+
+// Track event
+client.CreateEvent(userId, "level_completed", 150, metadata,
+    (evt) => Debug.Log("Event tracked"),
+    (error) => Debug.LogError(error.Message)
+);
+```
+
+See [mobile-ready.ts](./examples/mobile-ready.ts) and [Unity SDK](../sdk-unity/README.md) for more examples.
 
 ## Support
 

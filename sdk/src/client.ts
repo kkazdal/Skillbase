@@ -1,6 +1,7 @@
 /**
  * SkillBase Full SDK - Client Implementation
  * Supports Auth, Project, and Event APIs
+ * Mobile-ready with retry mechanism and token refresh
  */
 
 import type {
@@ -15,12 +16,17 @@ import { SkillBaseError } from './types';
 
 /**
  * SkillBase Client for interacting with all SkillBase APIs
+ * Mobile-ready with automatic retry and token refresh
  */
 export class SkillBaseClient {
   private apiKey?: string;
   private jwt?: string;
   private baseUrl: string;
   private apiBaseUrl: string;
+  private maxRetries: number;
+  private retryDelay: number;
+  private autoRefreshToken: boolean;
+  private onTokenRefresh?: (newToken: string) => void;
 
   /**
    * Creates a new SkillBase client instance
@@ -28,21 +34,25 @@ export class SkillBaseClient {
    * @param options - Client configuration options
    * @example
    * ```typescript
-   * // With API Key (for Event API)
-   * const client = new SkillBaseClient({
-   *   apiKey: 'skb_live_xxx_yyy',
-   *   baseUrl: 'https://api.skillbase.com'
-   * });
-   *
-   * // With JWT (for Auth and Project APIs)
+   * // Mobile-ready with retry and auto token refresh
    * const client = new SkillBaseClient({
    *   jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-   *   baseUrl: 'https://api.skillbase.com'
+   *   baseUrl: 'https://api.skillbase.com',
+   *   maxRetries: 3,
+   *   retryDelay: 1000,
+   *   autoRefreshToken: true,
+   *   onTokenRefresh: (newToken) => {
+   *     // Save token to secure storage
+   *     SecureStorage.set('jwt', newToken);
+   *   }
    * });
    * ```
    */
   constructor(options: SkillBaseClientOptions) {
-    if (!options.apiKey && !options.jwt) {
+    // Allow initialization without auth for register/login
+    if (!options.apiKey && !options.jwt && options.baseUrl) {
+      // This is OK - user will login/register first
+    } else if (!options.apiKey && !options.jwt) {
       throw new Error('Either apiKey or jwt must be provided');
     }
 
@@ -50,6 +60,10 @@ export class SkillBaseClient {
     this.jwt = options.jwt;
     this.baseUrl = options.baseUrl || 'http://localhost:3000';
     this.apiBaseUrl = `${this.baseUrl}/v1`;
+    this.maxRetries = options.maxRetries ?? 3;
+    this.retryDelay = options.retryDelay ?? 1000;
+    this.autoRefreshToken = options.autoRefreshToken ?? true;
+    this.onTokenRefresh = options.onTokenRefresh;
   }
 
   /**
@@ -71,6 +85,9 @@ export class SkillBaseClient {
    */
   setJwt(jwt: string): void {
     this.jwt = jwt;
+    if (this.onTokenRefresh) {
+      this.onTokenRefresh(jwt);
+    }
   }
 
   /**
@@ -88,52 +105,170 @@ export class SkillBaseClient {
   }
 
   /**
-   * Makes an HTTP request with error handling
+   * Sleep utility for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Checks if error is retryable
+   */
+  private isRetryableError(error: SkillBaseError): boolean {
+    // Retry on network errors (statusCode 0) or 5xx server errors
+    if (error.statusCode === 0 || (error.statusCode && error.statusCode >= 500)) {
+      return true;
+    }
+    // Retry on 401 if we have JWT (might need token refresh)
+    if (error.statusCode === 401 && this.jwt && this.autoRefreshToken) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Internal method to refresh the JWT token
+   */
+  private async refreshTokenInternal(): Promise<void> {
+    if (!this.jwt) {
+      throw new Error('No JWT token to refresh');
+    }
+
+    try {
+      const response = await this.request<AuthResponse>(
+        `${this.baseUrl}/auth/refresh`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ token: this.jwt }),
+        },
+        false, // Don't retry token refresh
+      );
+
+      if (response.accessToken) {
+        this.setJwt(response.accessToken);
+      }
+    } catch (error) {
+      // If refresh fails, clear JWT
+      this.clearJwt();
+      throw error;
+    }
+  }
+
+  /**
+   * Makes an HTTP request with retry mechanism and error handling
+   * Mobile-ready with automatic token refresh
    */
   private async request<T>(
     url: string,
     options: RequestInit = {},
+    retryOnAuth = true,
   ): Promise<T> {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
+    let lastError: SkillBaseError | null = null;
+
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      try {
+        // Try token refresh if we got 401 and have auto-refresh enabled
+        if (
+          attempt > 0 &&
+          lastError?.statusCode === 401 &&
+          this.jwt &&
+          this.autoRefreshToken &&
+          retryOnAuth
+        ) {
+          try {
+            await this.refreshTokenInternal();
+          } catch (refreshError) {
+            // If refresh fails, throw original error
+            throw lastError;
+          }
+        }
+
+        // Build headers
+        const headers: Record<string, string> = {
           'Content-Type': 'application/json',
-          ...options.headers,
-        },
-      });
+          ...(options.headers as Record<string, string>),
+        };
 
-      const data = await response.json();
+        // Add auth header if not already present
+        if (!headers.Authorization && !headers.authorization) {
+          headers.Authorization = this.getAuthHeader();
+        }
 
-      if (!response.ok) {
+        const response = await fetch(url, {
+          ...options,
+          headers,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const error = new SkillBaseError(
+            data.message || `HTTP ${response.status}`,
+            response.status,
+            data,
+          );
+
+          // If it's a retryable error and we have retries left, continue
+          if (
+            this.isRetryableError(error) &&
+            attempt < this.maxRetries &&
+            retryOnAuth
+          ) {
+            lastError = error;
+            // Exponential backoff: delay * 2^attempt
+            await this.sleep(this.retryDelay * Math.pow(2, attempt));
+            continue;
+          }
+
+          throw error;
+        }
+
+        return data as T;
+      } catch (error) {
+        if (error instanceof SkillBaseError) {
+          lastError = error;
+
+          // If it's a retryable error and we have retries left, continue
+          if (
+            this.isRetryableError(error) &&
+            attempt < this.maxRetries &&
+            retryOnAuth
+          ) {
+            // Exponential backoff: delay * 2^attempt
+            await this.sleep(this.retryDelay * Math.pow(2, attempt));
+            continue;
+          }
+
+          throw error;
+        }
+
+        // Handle network errors
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          lastError = new SkillBaseError(
+            'Network error: Unable to connect to the API',
+            0,
+            error,
+          );
+
+          // Retry network errors
+          if (attempt < this.maxRetries) {
+            await this.sleep(this.retryDelay * Math.pow(2, attempt));
+            continue;
+          }
+
+          throw lastError;
+        }
+
         throw new SkillBaseError(
-          data.message || `HTTP ${response.status}`,
-          response.status,
-          data,
-        );
-      }
-
-      return data as T;
-    } catch (error) {
-      if (error instanceof SkillBaseError) {
-        throw error;
-      }
-
-      // Handle network errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new SkillBaseError(
-          'Network error: Unable to connect to the API',
+          error instanceof Error ? error.message : 'Unknown error occurred',
           0,
           error,
         );
       }
-
-      throw new SkillBaseError(
-        error instanceof Error ? error.message : 'Unknown error occurred',
-        0,
-        error,
-      );
     }
+
+    // If we exhausted all retries, throw last error
+    throw lastError || new SkillBaseError('Request failed after retries', 0);
   }
 
   // ============================================================================
@@ -160,10 +295,21 @@ export class SkillBaseClient {
     password: string,
     name?: string,
   ): Promise<AuthResponse> {
-    return this.request<AuthResponse>(`${this.baseUrl}/auth/register`, {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    });
+    const response = await this.request<AuthResponse>(
+      `${this.baseUrl}/auth/register`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ email, password, name }),
+      },
+      false, // Don't retry registration
+    );
+
+    // Automatically set JWT after registration
+    if (response.accessToken) {
+      this.setJwt(response.accessToken);
+    }
+
+    return response;
   }
 
   /**
@@ -177,7 +323,7 @@ export class SkillBaseClient {
    * @example
    * ```typescript
    * const auth = await client.login('user@example.com', 'password123');
-   * client.setJwt(auth.accessToken); // Set JWT for subsequent requests
+   * // JWT is automatically set
    * ```
    */
   async login(email: string, password: string): Promise<AuthResponse> {
@@ -187,9 +333,50 @@ export class SkillBaseClient {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       },
+      false, // Don't retry login
     );
 
     // Automatically set JWT after login
+    if (response.accessToken) {
+      this.setJwt(response.accessToken);
+    }
+
+    return response;
+  }
+
+  /**
+   * Refreshes the current JWT token
+   * Mobile-friendly: Allows apps to refresh tokens before expiration
+   *
+   * @returns Promise resolving to auth response with new token
+   * @throws {SkillBaseError} If the request fails
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const auth = await client.refreshToken();
+   *   console.log('Token refreshed:', auth.accessToken);
+   * } catch (error) {
+   *   // Token expired or invalid, need to login again
+   *   await client.login(email, password);
+   * }
+   * ```
+   */
+  async refreshToken(): Promise<AuthResponse> {
+    if (!this.jwt) {
+      throw new SkillBaseError('No JWT token to refresh', 401);
+    }
+
+    const response = await this.request<AuthResponse>(
+      `${this.baseUrl}/auth/refresh`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ token: this.jwt }),
+      },
+      false, // Don't retry token refresh
+    );
+
+    // Automatically update JWT
     if (response.accessToken) {
       this.setJwt(response.accessToken);
     }
@@ -224,7 +411,7 @@ export class SkillBaseClient {
    * @example
    * ```typescript
    * const result = await client.createProject('My Game', 'A fun game project');
-   * client.setApiKey(result.apiKey); // Set API key for Event API
+   * // API key is automatically set
    * ```
    */
   async createProject(
@@ -303,7 +490,7 @@ export class SkillBaseClient {
    * @example
    * ```typescript
    * const { apiKey } = await client.regenerateApiKey('project-id-here');
-   * client.setApiKey(apiKey); // Update client with new API key
+   * // New API key is automatically set
    * ```
    */
   async regenerateApiKey(projectId: string): Promise<{ apiKey: string }> {
@@ -331,6 +518,7 @@ export class SkillBaseClient {
 
   /**
    * Creates a new event
+   * Mobile-ready with automatic retry on network errors
    *
    * @param userId - User ID associated with the event
    * @param name - Event name/type
@@ -396,6 +584,7 @@ export class SkillBaseClient {
 
   /**
    * Retrieves events, optionally filtered by userId
+   * Mobile-ready with automatic retry on network errors
    *
    * @param userId - Optional user ID to filter events
    * @returns Promise resolving to an array of events
