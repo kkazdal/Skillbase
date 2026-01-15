@@ -69,15 +69,28 @@ export class SkillBaseClient {
   /**
    * Gets the appropriate authorization header
    * Prioritizes API key over JWT
+   * Returns null if no auth method is available (for optional auth endpoints)
    */
-  private getAuthHeader(): string {
+  private getAuthHeader(): string | null {
     if (this.apiKey) {
       return `Bearer ${this.apiKey}`;
     }
     if (this.jwt) {
       return `Bearer ${this.jwt}`;
     }
-    throw new Error('No authentication method available');
+    return null;
+  }
+
+  /**
+   * Gets the authorization header, throws error if not available
+   * Use this for endpoints that require authentication
+   */
+  private getAuthHeaderRequired(): string {
+    const header = this.getAuthHeader();
+    if (!header) {
+      throw new Error('No authentication method available');
+    }
+    return header;
   }
 
   /**
@@ -192,14 +205,14 @@ export class SkillBaseClient {
 
         // Add auth header if not already present and auth is required
         if (requireAuth && !headers.Authorization && !headers.authorization) {
-          try {
-            headers.Authorization = this.getAuthHeader();
-          } catch (error) {
+          const authHeader = this.getAuthHeader();
+          if (authHeader) {
+            headers.Authorization = authHeader;
+          } else {
             // If auth is required but not available, throw error
             throw new SkillBaseError(
               'No authentication method available',
               401,
-              error,
             );
           }
         }
@@ -435,7 +448,7 @@ export class SkillBaseClient {
       {
         method: 'POST',
         headers: {
-          Authorization: this.getAuthHeader(),
+          Authorization: this.getAuthHeaderRequired(),
         },
         body: JSON.stringify({ name, description }),
       },
@@ -465,7 +478,7 @@ export class SkillBaseClient {
     return this.request<Project[]>(`${this.baseUrl}/projects`, {
       method: 'GET',
       headers: {
-        Authorization: this.getAuthHeader(),
+        Authorization: this.getAuthHeaderRequired(),
       },
     });
   }
@@ -487,7 +500,7 @@ export class SkillBaseClient {
     return this.request<Project>(`${this.baseUrl}/projects/${id}`, {
       method: 'GET',
       headers: {
-        Authorization: this.getAuthHeader(),
+        Authorization: this.getAuthHeaderRequired(),
       },
     });
   }
@@ -511,7 +524,7 @@ export class SkillBaseClient {
       {
         method: 'POST',
         headers: {
-          Authorization: this.getAuthHeader(),
+          Authorization: this.getAuthHeaderRequired(),
         },
       },
     );
@@ -560,7 +573,7 @@ export class SkillBaseClient {
       {
         method: 'POST',
         headers: {
-          Authorization: this.getAuthHeader(),
+          Authorization: this.getAuthHeaderRequired(),
         },
         body: JSON.stringify({
           userId,
@@ -620,7 +633,7 @@ export class SkillBaseClient {
     return this.request<Event[]>(url.toString(), {
       method: 'GET',
       headers: {
-        Authorization: this.getAuthHeader(),
+        Authorization: this.getAuthHeaderRequired(),
       },
     });
   }
