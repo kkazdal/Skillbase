@@ -162,6 +162,7 @@ export class SkillBaseClient {
     url: string,
     options: RequestInit = {},
     retryOnAuth = true,
+    requireAuth = true,
   ): Promise<T> {
     let lastError: SkillBaseError | null = null;
 
@@ -189,9 +190,18 @@ export class SkillBaseClient {
           ...(options.headers as Record<string, string>),
         };
 
-        // Add auth header if not already present
-        if (!headers.Authorization && !headers.authorization) {
-          headers.Authorization = this.getAuthHeader();
+        // Add auth header if not already present and auth is required
+        if (requireAuth && !headers.Authorization && !headers.authorization) {
+          try {
+            headers.Authorization = this.getAuthHeader();
+          } catch (error) {
+            // If auth is required but not available, throw error
+            throw new SkillBaseError(
+              'No authentication method available',
+              401,
+              error,
+            );
+          }
         }
 
         const response = await fetch(url, {
@@ -302,6 +312,7 @@ export class SkillBaseClient {
         body: JSON.stringify({ email, password, name }),
       },
       false, // Don't retry registration
+      false, // Don't require auth for registration
     );
 
     // Automatically set JWT after registration
@@ -334,6 +345,7 @@ export class SkillBaseClient {
         body: JSON.stringify({ email, password }),
       },
       false, // Don't retry login
+      false, // Don't require auth for login
     );
 
     // Automatically set JWT after login

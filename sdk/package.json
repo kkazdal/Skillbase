@@ -12,7 +12,9 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "ts-node --project tests/tsconfig.json tests/react-native-workflow.test.ts",
+    "test:workflow": "ts-node --project tests/tsconfig.json tests/react-native-workflow.test.ts"
   },
   "keywords": [
     "skillbase",
@@ -32,6 +34,8 @@
     "node": ">=16.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "ts-node": "^10.9.2",
+    "@types/node": "^20.0.0"
   }
 }
