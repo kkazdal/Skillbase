@@ -69,6 +69,7 @@ namespace SkillBase
 
         /// <summary>
         /// Gets the appropriate authorization header
+        /// Returns null if no authentication is available (for public endpoints like register/login)
         /// </summary>
         private string GetAuthHeader()
         {
@@ -80,7 +81,7 @@ namespace SkillBase
             {
                 return $"Bearer {jwt}";
             }
-            throw new SkillBaseError("No authentication method available");
+            return null; // No auth available - this is OK for public endpoints
         }
 
         /// <summary>
@@ -175,10 +176,14 @@ namespace SkillBase
                         }
                     }
 
-                    // Add auth header if not already present
+                    // Add auth header if not already present and auth is available
                     if (!headers?.ContainsKey("Authorization") ?? true)
                     {
-                        request.SetRequestHeader("Authorization", GetAuthHeader());
+                        string authHeader = GetAuthHeader();
+                        if (!string.IsNullOrEmpty(authHeader))
+                        {
+                            request.SetRequestHeader("Authorization", authHeader);
+                        }
                     }
 
                     request.SetRequestHeader("Content-Type", "application/json");
