@@ -151,6 +151,8 @@ namespace SkillBase
                 bool requestSuccess = false;
                 string errorMessage = null;
                 int statusCode = 0;
+                bool requestCreated = false;
+                Exception createException = null;
 
                 try
                 {
@@ -180,16 +182,26 @@ namespace SkillBase
                         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
                     }
                     request.downloadHandler = new DownloadHandlerBuffer();
+                    requestCreated = true;
                 }
                 catch (Exception ex)
                 {
+                    createException = ex;
                     lastError = new SkillBaseError($"Network error: {ex.Message}", ex, 0);
+                }
+
+                // Handle request creation error (retry if possible)
+                if (!requestCreated && createException != null)
+                {
                     if (attempt < maxRetries)
                     {
                         yield return new WaitForSeconds(retryDelayMs * Mathf.Pow(2, attempt) / 1000f);
                         continue;
                     }
-                    break;
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 if (request != null)
