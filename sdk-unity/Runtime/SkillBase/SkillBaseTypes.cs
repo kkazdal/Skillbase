@@ -106,5 +106,14 @@ namespace SkillBase
     {
         public Event[] items;
     }
+
+    /// <summary>
+    /// Wrapper for Project array
+    /// </summary>
+    [Serializable]
+    internal class ProjectArray
+    {
+        public Project[] items;
+    }
 }
 

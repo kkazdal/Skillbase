@@ -80,6 +80,20 @@ namespace SkillBase
         {
             client?.GetEvents(this, userId, onSuccess, onError);
         }
+
+        // ============================================================================
+        // PROJECT METHODS (Convenience wrappers)
+        // ============================================================================
+
+        public void CreateProject(string name, string description, Action<CreateProjectResponse> onSuccess, Action<SkillBaseError> onError)
+        {
+            client?.CreateProject(this, name, description, onSuccess, onError);
+        }
+
+        public void ListProjects(Action<Project[]> onSuccess, Action<SkillBaseError> onError)
+        {
+            client?.ListProjects(this, onSuccess, onError);
+        }
     }
 }
 

@@ -55,6 +55,14 @@ namespace SkillBase
                 return (T)(object)wrapper;
             }
 
+            // Handle Project arrays
+            if (typeof(T) == typeof(ProjectArray))
+            {
+                string wrappedJson = $"{{\"items\":{json}}}";
+                var wrapper = JsonUtility.FromJson<ProjectArray>(wrappedJson);
+                return (T)(object)wrapper;
+            }
+
             // Handle regular objects
             return JsonUtility.FromJson<T>(json);
         }
@@ -491,6 +499,73 @@ namespace SkillBase
                 headers,
                 true, // Retry on auth errors
                 (wrapper) => onSuccess?.Invoke(wrapper.items),
+                onError
+            ));
+        }
+
+        // ============================================================================
+        // PROJECT METHODS
+        // ============================================================================
+
+        /// <summary>
+        /// Creates a new project
+        /// Requires JWT authentication
+        /// </summary>
+        public void CreateProject(
+            MonoBehaviour coroutineRunner,
+            string name,
+            string description,
+            Action<CreateProjectResponse> onSuccess,
+            Action<SkillBaseError> onError)
+        {
+            var body = JsonUtility.ToJson(new { name, description });
+            var headers = new Dictionary<string, string>
+            {
+                { "Authorization", GetAuthHeader() }
+            };
+
+            coroutineRunner.StartCoroutine(Request<CreateProjectResponse>(
+                coroutineRunner,
+                $"{baseUrl}/projects",
+                "POST",
+                body,
+                headers,
+                true, // Retry on auth errors
+                (response) =>
+                {
+                    // Auto-set API key if returned
+                    if (!string.IsNullOrEmpty(response.apiKey))
+                    {
+                        SetApiKey(response.apiKey);
+                    }
+                    onSuccess?.Invoke(response);
+                },
+                onError
+            ));
+        }
+
+        /// <summary>
+        /// Lists all projects for the current user
+        /// Requires JWT authentication
+        /// </summary>
+        public void ListProjects(
+            MonoBehaviour coroutineRunner,
+            Action<Project[]> onSuccess,
+            Action<SkillBaseError> onError)
+        {
+            var headers = new Dictionary<string, string>
+            {
+                { "Authorization", GetAuthHeader() }
+            };
+
+            coroutineRunner.StartCoroutine(Request<ProjectArray>(
+                coroutineRunner,
+                $"{baseUrl}/projects",
+                "GET",
+                null,
+                headers,
+                true, // Retry on auth errors
+                (wrapper) => onSuccess?.Invoke(wrapper.items ?? new Project[0]),
                 onError
             ));
         }
